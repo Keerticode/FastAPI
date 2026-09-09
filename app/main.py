@@ -20,7 +20,7 @@ class Post(BaseModel):
     title: str
     content: str
     published: bool = True 
-    rating: Optional[int] = None
+    #rating: Optional[int] = None
 
 
 try:
@@ -65,31 +65,44 @@ def test_posts(db : Session = Depends(get_db)) :
 
 @app.get("/posts")
 async def get_posts():
-    cursor.execute("""SELECT * FROM "Posts" """)
-    posts = cursor.fetchall()
+    #cursor.execute("""SELECT * FROM "Posts" """)
+    #posts = cursor.fetchall()
+
+    posts = db.query(models.Post).all()
     return{"data" : posts}
 
 
 @app.post("/posts", status_code = status.HTTP_201_CREATED)
-async def create_posts(post : Post):
+async def create_posts(post: Post, db: Session = Depends(get_db)):
     #post_dict = post.dict()
     #post_dict['id'] = randrange(0, 1000000)
     #my_posts.append(post_dict)
-    cursor.execute("""INSERT INTO "Posts" (title, content, published) VALUES (%s, %s, %s) RETURNING *""",(post.title, post.content, post.published))
-    new_post = cursor.fetchone()
-    conn.commit()
-    return{"data": new_post}
 
+    # ---> using SQL
+    #cursor.execute("""INSERT INTO "Posts" (title, content, published) VALUES (%s, %s, %s) RETURNING *""",(post.title, post.content, post.published))
+    #new_post = cursor.fetchone()
+    #conn.commit()
+
+    #---->Using SQL Alchemy
+
+    new_post = models.Post(**post.dict())
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
+
+    return{"data": new_post}
+    
 
 @app.get("/posts/{id}")
-def get_post(id : int, response : Response):
+async def get_post(post: Post, db: Session = Depends(get_db)):
 
-    cursor.execute("""SELECT * FROM "Posts" WHERE id = %s """, (str(id)))
-    test_post = cursor.fetchone()
-    print(test_post)
+    #cursor.execute("""SELECT * FROM "Posts" WHERE id = %s """, (str(id)))
+    #test_post = cursor.fetchone()
+    post = db.query(models.Post).filter(models.Post.id == id).first()
+    print(post)
 
+    #post = find_posts(id)
 
-    post = find_posts(id)
     if not post :
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = f"post with id: {id} was not found")
         #response.status_code = status.HTTP_404_NOT_FOUND
