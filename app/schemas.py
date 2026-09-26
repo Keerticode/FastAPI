@@ -22,7 +22,7 @@ class Post(PostBase) :
 
 class UserCreate(BaseModel) :
     email : EmailStr
-    passwoed : str
+    password : str
 
 
 class UserOut(BaseModel) :
