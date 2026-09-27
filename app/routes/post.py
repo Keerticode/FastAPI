@@ -11,10 +11,13 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 
 
-router = APIRouter()
+router = APIRouter(
+    prefix = "/posts",
+    tags = ['Posts']
+)
 
 
-@router.get("/posts", response_model=List[schemas.Post])
+@router.get("/", response_model=List[schemas.Post])
 async def get_posts(db: Session = Depends(get_db)):
 
     # cursor.execute("""SELECT * FROM "Posts" """)
@@ -26,7 +29,7 @@ async def get_posts(db: Session = Depends(get_db)):
 
 
 @router.post(
-    "/posts",
+    "/",
     status_code=status.HTTP_201_CREATED,
     response_model=schemas.Post
 )
@@ -59,7 +62,7 @@ async def create_posts(
     return new_post
 
 
-@router.get("/posts/{id}", response_model=schemas.Post)
+@router.get("/{id}", response_model=schemas.Post)
 async def get_post(
     id: int,
     db: Session = Depends(get_db)
@@ -92,7 +95,7 @@ async def get_post(
 
 
 @router.delete(
-    "/posts/{id}",
+    "/{id}",
     status_code=status.HTTP_204_NO_CONTENT
 )
 # async def delete_post(id: int):
@@ -130,7 +133,7 @@ async def delete_post(
 
 
 @router.put(
-    "/posts/{id}",
+    "/{id}",
     response_model=schemas.Post
 )
 # async def update_post(id: int, post: Post):
@@ -174,4 +177,3 @@ async def update_post(
     db.commit()
 
     return post_query.first()
-
