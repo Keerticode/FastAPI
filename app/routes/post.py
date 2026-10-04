@@ -3,9 +3,9 @@ from fastapi import (
     status,
     HTTPException,
     Depends,
-    APIRouter
+    APIRouter,
 )
-from .. import models, schemas
+from .. import models, schemas, oauth2
 from typing import Optional, List
 from sqlalchemy.orm import Session
 from ..database import get_db
@@ -33,9 +33,12 @@ async def get_posts(db: Session = Depends(get_db)):
     status_code=status.HTTP_201_CREATED,
     response_model=schemas.Post
 )
+
+
 async def create_posts(
     post: schemas.CreatePost,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user_id : int = Depends(oauth2.get_current_user)
 ):
 
     # post_dict = post.dict()
@@ -53,6 +56,7 @@ async def create_posts(
 
     # ----> Using SQL Alchemy
 
+    print(user_id)
     new_post = models.Post(**post.dict())
 
     db.add(new_post)
